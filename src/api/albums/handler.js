@@ -1,4 +1,4 @@
-const ClientError = require('../exceptions/ClientError');
+const ClientError = require('../../exceptions/ClientError');
 
 /* eslint-disable no-underscore-dangle */
 class AlbumHandler {
