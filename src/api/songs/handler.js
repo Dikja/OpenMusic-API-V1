@@ -1,29 +1,34 @@
 const ClientError = require('../../exceptions/ClientError');
 
 /* eslint-disable no-underscore-dangle */
-class AlbumHandler {
-  constructor(albumService, albumValidator) {
-    this._albumService = albumService;
-    this._albumValidator = albumValidator;
+class SongsHandler {
+  constructor(songService, songValidator) {
+    this._songService = songService;
+    this._songValidator = songValidator;
 
-    this.postAlbumHandler = this.postAlbumHandler.bind(this);
-    this.getAlbumByIdHandler = this.getAlbumByIdHandler.bind(this);
-    this.putAlbumByIdHandler = this.putAlbumByIdHandler.bind(this);
-    this.deleteAlbumByIdHandler = this.deleteAlbumByIdHandler.bind(this);
+    this.postSongByHandler = this.postSongByHandler.bind(this);
+    this.getSongsByHandler = this.getSongsByHandler.bind(this);
+    this.getSongByIdHandler = this.getSongByIdHandler.bind(this);
+    this.putSongByIdHandler = this.putSongByIdHandler.bind(this);
+    this.deleteSongByIdHandler = this.deleteSongByIdHandler.bind(this);
   }
 
-  async postAlbumHandler(request, h) {
+  async postSongByHandler(request, h) {
     try {
-      this._albumValidator.validateAlbumPayload(request.payload);
+      this._songValidator.validateSongPayload(request.payload);
+      const {
+        title, year, performer, genre, duration, albumId,
+      } = request.payload;
 
-      const { name, year } = request.payload;
-
-      const albumId = await this._albumService.addAlbum({ name, year });
+      const songId = await this._songService.addSong({
+        title, year, performer, genre, duration, albumId,
+      });
 
       const response = h.response({
         status: 'success',
+        message: 'Berhasil menambahkan lagu',
         data: {
-          albumId,
+          songId,
         },
       });
       response.code(201);
@@ -37,9 +42,8 @@ class AlbumHandler {
         response.code(error.statusCode);
         return response;
       }
-
       const response = h.response({
-        status: 'error',
+        status: 'fail',
         message: 'Maaf, terjadi kegagalan pada server kami.',
       });
       response.code(500);
@@ -48,16 +52,23 @@ class AlbumHandler {
     }
   }
 
-  async getAlbumByIdHandler(request, h) {
+  async getSongsByHandler(request) {
+    const { title, performer } = request.query;
+    const songs = await this._songService.getSongs(title, performer);
+    return {
+      status: 'success',
+      data: { songs },
+    };
+  }
+
+  async getSongByIdHandler(request, h) {
     try {
       const { id } = request.params;
-
-      const album = await this._albumService.getAlbumById(id);
-
+      const song = await this._songService.getSongById(id);
       return {
         status: 'success',
         data: {
-          album,
+          song,
         },
       };
     } catch (error) {
@@ -70,7 +81,7 @@ class AlbumHandler {
         return response;
       }
       const response = h.response({
-        status: 'error',
+        status: 'fail',
         message: 'Maaf, terjadi kegagalan pada server kami.',
       });
       response.code(500);
@@ -79,16 +90,16 @@ class AlbumHandler {
     }
   }
 
-  async putAlbumByIdHandler(request, h) {
+  async putSongByIdHandler(request, h) {
     try {
-      this._albumValidator.validateAlbumPayload(request.payload);
+      this._songValidator.validateSongPayload(request.payload);
       const { id } = request.params;
 
-      await this._albumService.editAlbumById(id, request.payload);
+      await this._songService.editSongById(id, request.payload);
 
       return {
         status: 'success',
-        message: 'Album berhasil diperbarui',
+        message: 'Lagu berhasil dirubah',
       };
     } catch (error) {
       if (error instanceof ClientError) {
@@ -99,9 +110,10 @@ class AlbumHandler {
         response.code(error.statusCode);
         return response;
       }
+
       const response = h.response({
-        status: 'error',
-        message: 'Maaf, terjadi kesalahan pada server kami',
+        status: 'fail',
+        message: 'Maaf, terjadi kegagalan pada server kami.',
       });
       response.code(500);
       console.error(error);
@@ -109,14 +121,14 @@ class AlbumHandler {
     }
   }
 
-  async deleteAlbumByIdHandler(request, h) {
+  async deleteSongByIdHandler(request, h) {
     try {
       const { id } = request.params;
-      await this._albumService.deleteAlbumById(id);
+      await this._songService.deleteSongById(id);
 
       return {
         status: 'success',
-        message: 'Berhasil menghapus Album',
+        message: 'Lagu berhasil dihapus',
       };
     } catch (error) {
       if (error instanceof ClientError) {
@@ -128,8 +140,8 @@ class AlbumHandler {
         return response;
       }
       const response = h.response({
-        status: 'error',
-        message: 'Maaf, Terjadi kesalahan pada server kami',
+        status: 'fail',
+        message: 'Maaf, terjadi kegagalan pada server kami.',
       });
       response.code(500);
       console.error(error);
@@ -137,4 +149,4 @@ class AlbumHandler {
     }
   }
 }
-module.exports = AlbumHandler;
+module.exports = SongsHandler;

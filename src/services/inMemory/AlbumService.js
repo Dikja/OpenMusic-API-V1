@@ -9,7 +9,7 @@ class AlbumService {
   }
 
   addAlbum({ name, year }) {
-    const id = nanoid(16);
+    const id = `album-${nanoid(16)}`;
 
     const newAlbum = {
       id, name, year,
