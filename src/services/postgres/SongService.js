@@ -34,7 +34,6 @@ class SongService {
         text: 'SELECT id, title, performer FROM songs WHERE LOWER (title) LIKE $1',
         values: [`%${title}%`],
       };
-
       songFilter = await this._pool.query(query);
     }
     if (performer !== undefined) {
